@@ -1,0 +1,39 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "docker-run",
+			"label": "docker-run: debug",
+			"dependsOn": ["docker-build"],
+			"dockerRun": {
+				"ports": [ 
+					{
+						"hostPort": 3000,
+						"containerPort": 3000
+					}, 
+					{
+						"hostPort": 9229,
+						"containerPort": 9229
+					} 
+				],
+				"command": "nest start --debug 0.0.0.0:9229"
+			},
+			"node": {
+			  "enableDebugging": true
+			}
+		},
+		{
+			"label": "docker-build",
+			"type": "shell",
+			"command": "docker-compose",
+			"args": [
+				"build"
+			],
+			"group": {
+			  "kind": "build",
+			  "isDefault": true
+			},
+			"problemMatcher": []
+		  }
+	]
+}

@@ -1,0 +1,11 @@
+version: '3'
+services:
+  nestjs:
+    build: .
+    image: genaigameserver
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Debugging port for VS Code
+    environment:
+      - NODE_ENV=development
+    network_mode: "host"
