@@ -9,8 +9,11 @@ services:
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongodb:27017/genai
+      - REDIS_URI=redis://redis:6379
+    command: nest start --debug 0.0.0.0:9229
     depends_on:
       - mongodb
+      - redis
 
   mongodb:
     image: mongo:6-jammy
@@ -18,6 +21,11 @@ services:
       - "27017:27017"
     volumes:
       - dbdata6:/data/db
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
 
 volumes:
   dbdata6:
