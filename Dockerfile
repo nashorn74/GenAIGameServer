@@ -1,13 +1,18 @@
-FROM node:16
+FROM node:22-alpine
 
-WORKDIR /nest
-COPY package*.json ./
-RUN npm install
+# Install build dependencies
+RUN apk add --no-cache python3 g++ make
+
+WORKDIR /usr/src/app
 
 COPY . .
 
-RUN npm install -g @nestjs/cli && npm install -D concurrently
+RUN npm install
+RUN npm rebuild bcrypt --build-from-source
+
+RUN npm run build
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start:dev"]
+CMD [ "node", "dist/main.js" ]
+

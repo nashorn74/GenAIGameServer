@@ -8,4 +8,16 @@ services:
       - "9229:9229"  # Debugging port for VS Code
     environment:
       - NODE_ENV=development
-    network_mode: "host"
+      - MONGODB_URI=mongodb://mongodb:27017/genai
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:6-jammy
+    ports:
+      - "27017:27017"
+    volumes:
+      - dbdata6:/data/db
+
+volumes:
+  dbdata6:

@@ -2,6 +2,18 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Node.js Launch",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${file}",
+      "env": {
+        "MONGODB_URI": "mongodb://localhost:27017/genai"
+      }
+    },
+    {
       "name": "Docker Node.js Launch",
       "type": "docker",
       "request": "launch",
