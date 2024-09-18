@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user.module';
 import { AuthModule } from './auth/auth.module';
+import { RedisModule } from './redis.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from './auth/auth.module';
       }),
       inject: [ConfigService],
     }),
+    RedisModule,
     UserModule,
     AuthModule,
   ],
