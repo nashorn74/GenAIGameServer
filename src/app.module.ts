@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RedisModule } from './redis.module';
 import { UsersModule } from './users/users.module'; // UsersModule import
+import { CharactersModule } from './characters/characters.module'; // CharactersModule 가져오기
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UsersModule } from './users/users.module'; // UsersModule import
     }),
     RedisModule,
     UsersModule,
+    CharactersModule, // CharactersModule 등록
   ],
   controllers: [
     AppController
