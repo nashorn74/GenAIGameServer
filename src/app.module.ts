@@ -3,9 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserModule } from './user.module';
-import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './redis.module';
+import { UsersModule } from './users/users.module'; // UsersModule import
 
 @Module({
   imports: [
@@ -18,12 +17,13 @@ import { RedisModule } from './redis.module';
       inject: [ConfigService],
     }),
     RedisModule,
-    UserModule,
-    AuthModule,
+    UsersModule,
   ],
   controllers: [
-    AppController,
+    AppController
   ],
-  providers: [AppService],
+  providers: [
+    AppService
+  ],
 })
 export class AppModule {}
