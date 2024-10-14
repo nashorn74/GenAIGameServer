@@ -6,6 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { RedisModule } from './redis.module';
 import { UsersModule } from './users/users.module'; // UsersModule import
 import { CharactersModule } from './characters/characters.module'; // CharactersModule 가져오기
+import { ItemsModule } from './items/items.module'; // ItemsModule 가져오기
+import { UserItemsModule } from './user-items/user-items.module'; // UserItemsModule 가져오기
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { CharactersModule } from './characters/characters.module'; // Characters
     RedisModule,
     UsersModule,
     CharactersModule, // CharactersModule 등록
+    ItemsModule, // ItemsModule 등록
+    UserItemsModule, // UserItemsModule 등록
   ],
   controllers: [
     AppController
