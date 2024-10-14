@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module'; // UsersModule import
 import { CharactersModule } from './characters/characters.module'; // CharactersModule 가져오기
 import { ItemsModule } from './items/items.module'; // ItemsModule 가져오기
 import { UserItemsModule } from './user-items/user-items.module'; // UserItemsModule 가져오기
+import { NoticesModule } from './notices/notices.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserItemsModule } from './user-items/user-items.module'; // UserItemsMo
     CharactersModule, // CharactersModule 등록
     ItemsModule, // ItemsModule 등록
     UserItemsModule, // UserItemsModule 등록
+    NoticesModule,
   ],
   controllers: [
     AppController
