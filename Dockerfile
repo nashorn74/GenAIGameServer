@@ -1,7 +1,7 @@
-FROM node:22-alpine
+FROM node:20-buster
 
 # Install build dependencies
-RUN apk add --no-cache python3 g++ make
+RUN apt-get update && apt-get install -y python3 g++ make
 
 # Install NestJS CLI globally
 RUN npm install -g @nestjs/cli
