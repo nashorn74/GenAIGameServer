@@ -21,7 +21,7 @@ export class UsersController {
   @Post('auth/login')
   async login(@Body() loginUserDto: LoginUserDto) {
     const { user, token } = await this.usersService.login(loginUserDto);
-    return { message: '로그인 성공', token };
+    return { message: '로그인 성공', user, token };
   }
 
   // 로그아웃
