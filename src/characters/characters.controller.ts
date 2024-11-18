@@ -41,4 +41,11 @@ export class CharactersController {
     const result = await this.charactersService.deleteCharacter(userId);
     return result;
   }
+
+  // 캐릭터 육성
+  @Post('train') 
+  async startTraining(@Param('userId') userId: string) {
+    await this.charactersService.startTraining(userId);
+    return { status: 'Training started' };
+  }
 }
