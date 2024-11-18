@@ -1,3 +1,5 @@
+//src/app.module.ts
+
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -9,6 +11,7 @@ import { CharactersModule } from './characters/characters.module'; // Characters
 import { ItemsModule } from './items/items.module'; // ItemsModule 가져오기
 import { UserItemsModule } from './user-items/user-items.module'; // UserItemsModule 가져오기
 import { NoticesModule } from './notices/notices.module';
+import { ChatService } from './service/chat/chat.service';
 
 @Module({
   imports: [
@@ -31,7 +34,8 @@ import { NoticesModule } from './notices/notices.module';
     AppController
   ],
   providers: [
-    AppService
+    AppService,
+    ChatService
   ],
 })
 export class AppModule {}

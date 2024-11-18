@@ -16,4 +16,11 @@ export class RedisController {
     const value = await this.pubSubService.get(key);
     return value || `Key ${key} not found.`;
   }
+
+  @Post('publish')
+  publishMessage(@Body() body: { channel: string; message: string }) {
+    const { channel, message } = body;
+    this.pubSubService.publish(channel, message);
+    return { status: 'Message published' };
+  }
 }
