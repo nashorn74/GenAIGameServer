@@ -48,4 +48,11 @@ export class CharactersController {
     await this.charactersService.startTraining(userId);
     return { status: 'Training started' };
   }
+
+  // 캐릭터 전투 시작
+  @Post('battle')
+  async startBattle(@Param('userId') userId: string) {
+    await this.charactersService.startBattle(userId);
+    return { status: 'Battle started' };
+  }
 }

@@ -3,14 +3,19 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Character } from '../schemas/character.schema';
+import { UserItem } from '../schemas/user-item.schema';
+import { Item } from '../schemas/item.schema';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
 import { PubSubService } from '../service/redis/pubsub.service';
+import { monsters } from '../data/monsters';
 
 @Injectable()
 export class CharactersService {
   constructor(
     @InjectModel('Character') private characterModel: Model<Character>,
+    @InjectModel('UserItem') private userItemModel: Model<UserItem>,
+    @InjectModel('Item') private itemModel: Model<Item>,
     private readonly pubSubService: PubSubService,
   ) {}
 
@@ -140,5 +145,149 @@ export class CharactersService {
         }
       }
     }, 100); // 0.1초마다 진행 상황 업데이트
+  }
+
+  // 전투 시작
+  async startBattle(userId: string): Promise<void> {
+    const channel = `battle:${userId}`;
+
+    // 랜덤 몬스터 선택
+    const monster = { ...monsters[Math.floor(Math.random() * monsters.length)] };
+
+    // 캐릭터 정보 가져오기
+    const character = await this.characterModel.findOne({ userId });
+
+    if (!character) {
+      this.pubSubService.publish(channel, JSON.stringify({ type: 'error', message: '캐릭터를 찾을 수 없습니다.' }));
+      throw new NotFoundException('캐릭터를 찾을 수 없습니다.');
+    }
+
+    // 보유 아이템 정보 가져오기
+    const userItems = await this.userItemModel.find({ userId }).populate('itemId');
+
+    // 전투 상태 초기화
+    const battleState = {
+      character: {
+        hp: character.hp,
+        mp: character.mp,
+        attack_point: character.attack_point,
+        defence_point: character.defence_point,
+        level: character.level,
+      },
+      monster,
+      userItems,
+    };
+
+    // 전투 시작 메시지 전송 (몬스터 이름 포함)
+    this.pubSubService.publish(channel, JSON.stringify({
+      type: 'battle_start',
+      monsterName: monster.name, // 몬스터 이름 추가
+      characterMaxHp: battleState.character.hp,
+      monsterMaxHp: battleState.monster.hp,
+    }));
+
+    // 전투 시작 (비동기 처리)
+    this.runBattle(userId, battleState, channel);
+  }
+
+  // 전투 프로세스 실행
+  private async runBattle(userId: string, battleState: any, channel: string): Promise<void> {
+    while (battleState.character.hp > 0 && battleState.monster.hp > 0) {
+      // 캐릭터의 공격
+      let damage = Math.max(0, battleState.character.attack_point - battleState.monster.defence_point);
+      battleState.monster.hp -= damage;
+      let log = `플레이어가 ${damage}의 피해를 입혔습니다.`;
+
+      // 상태 업데이트 메시지 전송
+      this.pubSubService.publish(channel, JSON.stringify({
+        type: 'update',
+        characterHp: battleState.character.hp,
+        monsterHp: Math.max(0, battleState.monster.hp),
+        log,
+      }));
+
+      if (battleState.monster.hp <= 0) {
+        break;
+      }
+
+      // 몬스터의 공격
+      damage = Math.max(0, battleState.monster.attack_point - battleState.character.defence_point);
+      battleState.character.hp -= damage;
+      log = `몬스터가 ${damage}의 피해를 입혔습니다.`;
+
+      // 캐릭터가 회복 아이템 사용 가능한지 체크 및 사용
+      if (battleState.character.hp < 50) { // 예시: HP가 50 이하이면 회복 아이템 사용
+        const healingItem = battleState.userItems.find(ui => ui.itemId.type === 2 && ui.itemId.hp_recovery > 0 && ui.quantity > 0);
+        if (healingItem) {
+          battleState.character.hp += healingItem.itemId.hp_recovery;
+          // 아이템 사용 후 수량 감소
+          healingItem.quantity -= 1;
+          await healingItem.save();
+          log += `\n플레이어가 ${healingItem.itemId.name}을 사용하여 HP를 ${healingItem.itemId.hp_recovery} 회복했습니다.`;
+        }
+      }
+
+      // 상태 업데이트 메시지 전송
+      this.pubSubService.publish(channel, JSON.stringify({
+        type: 'update',
+        characterHp: Math.max(0, battleState.character.hp),
+        monsterHp: battleState.monster.hp,
+        log,
+      }));
+
+      if (battleState.character.hp <= 0) {
+        break;
+      }
+
+      // 딜레이
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
+    }
+
+    // 전투 종료 처리
+    if (battleState.character.hp > 0) {
+      // 승리 처리
+      await this.handleBattleEnd(userId, battleState, true);
+    } else {
+      // 패배 처리
+      await this.handleBattleEnd(userId, battleState, false);
+    }
+  }
+
+  // 전투 종료 처리
+  private async handleBattleEnd(userId: string, battleState: any, isWin: boolean): Promise<void> {
+    const channel = `battle:${userId}`;
+
+    if (isWin) {
+      // 경험치 및 골드 획득 처리
+      const expGained = battleState.monster.level * 10; // 예시: 몬스터 레벨 * 10
+      const goldGained = battleState.monster.level * 5; // 예시: 몬스터 레벨 * 5
+
+      const character = await this.characterModel.findOne({ userId });
+
+      character.exp += expGained;
+      character.gold += goldGained;
+
+      // 레벨 업 체크
+      while (character.exp >= 100) {
+        character.level += 1;
+        character.exp -= 100;
+      }
+
+      await character.save();
+
+      // 전투 종료 메시지 전송
+      this.pubSubService.publish(channel, JSON.stringify({
+        type: 'battle_end',
+        win: true,
+        expGained,
+        goldGained,
+      }));
+    } else {
+      // 전투 패배 처리
+      this.pubSubService.publish(channel, JSON.stringify({
+        type: 'battle_end',
+        win: false,
+      }));
+    }
   }
 }
