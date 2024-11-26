@@ -3,6 +3,8 @@ import { Schema, Document } from 'mongoose';
 
 export interface Character extends Document {
   userId: string;
+  name: string | null;
+  job: number | null; // 직업 번호 (0부터 시작)
   race: number; // 0 = 용족, 1 = 엘프족, 2 = 인간족
   gold: number;
   hp: number;
@@ -21,6 +23,8 @@ export interface Character extends Document {
 
 const CharacterSchema: Schema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  name: { type: String, required: false, default: null },
+  job: { type: Number, required: false, default: null },
   race: { type: Number, required: true },
   gold: { type: Number, required: true, default: 0 },
   hp: { type: Number, required: true, default: 0 },
@@ -38,5 +42,19 @@ const CharacterSchema: Schema = new Schema({
 }, {
   timestamps: true,
 });
+
+// toJSON 메서드 추가
+CharacterSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+
+  if (obj.name === undefined) {
+    obj.name = null;
+  }
+  if (obj.job === undefined) {
+    obj.job = null;
+  }
+
+  return obj;
+};
 
 export { CharacterSchema };

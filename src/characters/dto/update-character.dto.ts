@@ -1,7 +1,15 @@
 // src/characters/dto/update-character.dto.ts
-import { IsInt, IsOptional } from 'class-validator';
+import { IsInt, IsString, IsOptional } from 'class-validator';
 
 export class UpdateCharacterDto {
+  @IsOptional()
+  @IsString()
+  readonly name?: string;
+
+  @IsOptional()
+  @IsInt()
+  readonly job?: number;
+
   @IsOptional()
   @IsInt()
   readonly race?: number;

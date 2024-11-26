@@ -1,7 +1,13 @@
 // src/characters/dto/create-character.dto.ts
-import { IsInt, IsOptional } from 'class-validator';
+import { IsInt, IsString, IsOptional } from 'class-validator';
 
 export class CreateCharacterDto {
+  @IsString()
+  readonly name: string;
+
+  @IsInt()
+  readonly job: number;
+
   @IsInt()
   readonly race: number;
 
